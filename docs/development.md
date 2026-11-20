@@ -75,6 +75,14 @@ The random generator is seeded, so the data has the same shape every time.
 Dates are relative to when setup runs, so the history is always recent, and
 running setup again leaves existing purchases alone.
 
+## Claude Code cloud sessions
+
+`.claude/cloud/` holds what Docker needs in a Claude Code cloud session, where
+the daemon isn't running at start and traffic goes through a proxy: a start
+script, a base image that trusts the proxy's certificate, and a Compose
+override. [CLAUDE.md](../CLAUDE.md) has the commands. Local development
+doesn't use any of it.
+
 ## Database console
 
 With the app running, open Python's SQLite console:

@@ -1,0 +1,34 @@
+# Claude Code cloud sessions only, layered over compose.yaml (see docker-up.sh).
+# The session reaches the internet through a proxy on the host's loopback, so
+# builds, the app and the dev tools use host networking and trust its certificate.
+x-cloud-build: &cloud-build
+  network: host
+  additional_contexts:
+    python:3.14.4-slim-bookworm: docker-image://penny-cloud/python:3.14.4-slim-bookworm
+  args:
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+
+x-cloud-network: &cloud-network
+  network_mode: host
+  environment:
+    HTTPS_PROXY: ${HTTPS_PROXY}
+    NO_PROXY: ${NO_PROXY}
+    PENNY_OTLP_ENDPOINT: http://127.0.0.1:4318
+
+services:
+  init:
+    build: *cloud-build
+
+  penny:
+    build: *cloud-build
+    <<: *cloud-network
+    ports: !reset []
+
+  traces:
+    ports:
+      - "4318:4318"
+
+  dev:
+    build: *cloud-build
+    <<: *cloud-network

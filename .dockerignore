@@ -5,3 +5,4 @@
 .pytest_cache
 .ruff_cache
 second-agent
+.claude/cloud/proxy-ca.crt
