@@ -9,6 +9,8 @@ x-penny-image: &penny-image
     args:
       GIT_SHA: ${GIT_SHA:-}
   image: penny:local
+  # Built here, never pulled: there's no penny image in any registry.
+  pull_policy: build
   env_file: .env
   volumes:
     - penny-data:/app/data
@@ -52,6 +54,7 @@ services:
       context: .
       target: dev
     image: penny-dev:local
+    pull_policy: build
     env_file: .env
     volumes:
       - penny-data:/app/data

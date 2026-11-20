@@ -17,7 +17,10 @@ class StorageSettings(BaseSettings):
     """Where the data lives: the `penny-data` volume at `/app/data`."""
 
     # Compose passes `.env` to the container as environment variables; no file is read here.
-    model_config = SettingsConfigDict(env_prefix="PENNY_", extra="ignore")
+    # A settings error never echoes its input: the input includes the OpenAI key.
+    model_config = SettingsConfigDict(
+        env_prefix="PENNY_", extra="ignore", hide_input_in_errors=True
+    )
 
     database_url: str = "sqlite+aiosqlite:////app/data/penny.db"
     jwt_public_key_path: str = "/app/data/keys/dev_public.pem"
