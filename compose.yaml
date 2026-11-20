@@ -1,0 +1,60 @@
+# Penny, fully Dockerized. First run: copy .env.example to .env, set the
+# two required values, then `docker compose up --build`. Reset: `docker compose down -v`.
+name: penny
+
+x-penny-image: &penny-image
+  build:
+    context: .
+    target: runtime
+    args:
+      GIT_SHA: ${GIT_SHA:-}
+  image: penny:local
+  env_file: .env
+  volumes:
+    - penny-data:/app/data
+
+services:
+  # Runs once per `up`: keys, migrations, sample data, content.
+  init:
+    <<: *penny-image
+    command: ["python", "-m", "scripts.bootstrap"]
+
+  penny:
+    <<: *penny-image
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      traces:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=2)"
+      interval: 10s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
+
+  traces:
+    image: jaegertracing/jaeger:2.11.0
+    # Penny sends traces over the Compose network (OTLP HTTP on 4318); only the UI is published.
+    ports:
+      - "16686:16686"
+
+  # Specs, checks and evals: `docker compose run --rm dev pytest` (and see the README).
+  dev:
+    profiles: ["dev"]
+    build:
+      context: .
+      target: dev
+    image: penny-dev:local
+    env_file: .env
+    volumes:
+      - penny-data:/app/data
+
+volumes:
+  penny-data:
